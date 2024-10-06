@@ -69,7 +69,7 @@ class OM_X_arm:
     def find_device_name(self):
         ports = list(serial.tools.list_ports.comports())
         for port in ports:
-            if 'COM' in port.device and port.device != 'COM1':  # Skip COM1 # ttyUSB
+            if 'USB Serial Port' in port.description and 'COM' in port.device and port.device != 'COM1':  # Skip COM1 # ttyUSB
                 return port.device
         raise Exception("Failed to connect via serial, no devices found.")
 
