@@ -31,6 +31,13 @@ class Robot(OM_X_arm):
         # change here or call writeTime in scripts to change
         self.write_time(5)
 
+        # Physical constants
+        self.L1 = 0.077
+        self.L2 = 0.130
+        self.L3 = 0.124
+        self.L4 = 0.126
+        self.angle_offset = np.pi/2-np.arcsin(24/130)
+
     """
     Sends the joints to the desired angles.
     Parameters:
@@ -39,6 +46,69 @@ class Robot(OM_X_arm):
     def write_joints(self, goals):
         goals = [round(goal * DX_XM430_W350.TICKS_PER_DEG + DX_XM430_W350.TICK_POS_OFFSET) % DX_XM430_W350.TICKS_PER_ROT for goal in goals]
         self.bulk_read_write(DX_XM430_W350.POS_LEN, DX_XM430_W350.GOAL_POSITION, goals)
+
+    """
+    
+    """
+    def get_dh_row_mat(self, in_arr: np.array) -> np.array:
+        return np.array(
+               [[np.cos(in_arr[0]),  -np.sin(in_arr[0])*np.cos(in_arr[3]),   np.sin(in_arr[0])*np.sin(in_arr[3]),    in_arr[2]*np.cos(in_arr[0])],
+                [np.sin(in_arr[0]),  np.cos(in_arr[0])*np.cos(in_arr[3]),    -np.cos(in_arr[0])*np.sin(in_arr[3]),   in_arr[2]*np.sin(in_arr[0])],
+                [0,                  np.sin(in_arr[3]),                      np.cos(in_arr[3]),                      in_arr[1]],
+                [0,                  0,                                      0,                                      1]]
+                )
+    
+    
+    '''
+    Input: a 1 × 4 numpy array specifying the joint angles.
+    Return: a 4 × 4 × 4 numpy array of A matrices for specified joint angles (A1; A2; A3; A4)
+    '''
+    def get_int_mat(self, motor_angles: np.array) -> np.array:
+        return np.array(
+            [
+                self.get_dh_row_mat([motor_angles[0],                       self.L1,    0,          -np.pi/2]),
+                self.get_dh_row_mat([motor_angles[1] - self.angle_offset,   0,          self.L2,    0       ]),
+                self.get_dh_row_mat([motor_angles[2] + self.angle_offset,   0,          self.L3,    0       ]),
+                self.get_dh_row_mat([motor_angles[3],                       0,          self.L4,    0       ])
+            ]
+        )
+    
+    '''
+    Input: a 1 × 4 numpy array specifying the joint angles.
+    Return: a 4 × 4 × 4 numpy array of T matrices (transforms from joint i to the base) for specified joint angles
+    '''
+    def get_acc_mat(self, joint_angles: np.array) -> np.array:
+        a = self.get_int_mat(joint_angles)
+        a1 = a[0]
+        a2 = np.matmul(a1, a[1])
+        a3 = np.matmul(a2, a[2])
+        a4 = np.matmul(a3, a[3])
+        return np.array([a1, a2, a3, a4])
+    
+    '''
+    Input: a 1 × 4 numpy array specifying the joint angles.
+    Return: a 4 × 4 numpy array representing the end-effector to base transformation
+    '''
+    def get_fk(self, joint_angles: np.array) -> np.array:
+        return self.get_acc_mat(joint_angles)[3]
+    
+    '''
+    Inputs: None
+    '''
+    def get_current_fk(self) -> np.array:
+        joint_angles = self.get_joints_readings()[0]
+        return self.get_fk(np.radians(joint_angles))
+    
+
+    '''
+    Input: a 1 × 4 numpy array specifying the joint angles
+    Output: a 1 × 5 numpy array containing the end-effector position (x, y , z in mm) and orientation (pitch and yaw in degrees)
+    '''
+    def get_ee_pos(self, joint_angles: np.array) -> np.array:
+        yaw = joint_angles[0]
+        pitch = -joint_angles[1] - joint_angles[2] - joint_angles[3]
+        fk = self.get_fk(np.radians(joint_angles))
+        return np.array([fk[0, 3], fk[1, 3], fk[2, 3], pitch, yaw])
 
     """
     Creates a time-based profile (trapezoidal) based on the desired times.
