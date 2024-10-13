@@ -15,7 +15,7 @@ class Robot(OM_X_arm):
     Creates constants and connects via serial. Sets default mode and state.
     """
     def __init__(self):
-        super().__init__()
+#        super().__init__()
 
         # Robot Dimensions (in mm)
         self.mDim = [77, 130, 124, 126]
@@ -24,12 +24,12 @@ class Robot(OM_X_arm):
         # Set default mode and state
         # Change robot to position mode with torque enabled by default
         # Feel free to change this as desired
-        self.write_mode('position')
-        self.write_motor_state(True)
+#        self.write_mode('position')
+#        self.write_motor_state(True)
 
         # Set the robot to move between positions with a 5 second trajectory profile
         # change here or call writeTime in scripts to change
-        self.write_time(5)
+#        self.write_time(5)
 
         # Physical constants
         self.L1 = 0.077

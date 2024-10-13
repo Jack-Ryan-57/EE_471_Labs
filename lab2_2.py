@@ -13,6 +13,9 @@ import time
 # Setup robot
 robot = Robot()  # Creates robot object
 
+np.set_printoptions(precision=3)
+np.set_printoptions(suppress=True)
+
 print("Forward kinematics for [0,0,0,0]:")
 print(robot.get_fk(np.radians([0, 0, 0, 0])))
 print("Forward kinematics for [15, −45, −60, 90]:")

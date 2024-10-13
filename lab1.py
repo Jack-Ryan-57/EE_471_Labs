@@ -63,28 +63,28 @@ fig, axs = plt.subplots(2, 2, figsize=(10, 8))
 axs = axs.flatten() 
 
 # Plot Joint 1
-axs[0].plot(timestamps_np, joint_positions_np[:, 0], 'r-', linewidth=2)
+axs[0].plot(time_intervals_np, joint_positions_np[:, 0], 'r-', linewidth=2)
 axs[0].set_title('Joint 1 (Base Joint)')
 axs[0].set_xlabel('Time (s)')
 axs[0].set_ylabel('Position (deg)')
 axs[0].grid(True)
 
 # Plot Joint 2
-axs[1].plot(timestamps_np, joint_positions_np[:, 1], 'g-', linewidth=2)
+axs[1].plot(time_intervals_np, joint_positions_np[:, 1], 'g-', linewidth=2)
 axs[1].set_title('Joint 2')
 axs[1].set_xlabel('Time (s)')
 axs[1].set_ylabel('Position (deg)')
 axs[1].grid(True)
 
 # Plot Joint 3
-axs[2].plot(timestamps_np, joint_positions_np[:, 2], 'b-', linewidth=2)
+axs[2].plot(time_intervals_np, joint_positions_np[:, 2], 'b-', linewidth=2)
 axs[2].set_title('Joint 3')
 axs[2].set_xlabel('Time (s)')
 axs[2].set_ylabel('Position (deg)')
 axs[2].grid(True)
 
 # Plot Joint 4
-axs[3].plot(timestamps_np, joint_positions_np[:, 3], 'm-', linewidth=2)
+axs[3].plot(time_intervals_np, joint_positions_np[:, 3], 'm-', linewidth=2)
 axs[3].set_title('Joint 4')
 axs[3].set_xlabel('Time (s)')
 axs[3].set_ylabel('Position (deg)')
