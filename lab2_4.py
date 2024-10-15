@@ -11,61 +11,63 @@ from Robot import Robot
 import PickleFiler
 import time
 
+# Waypoints
 mov1 = [0, -45, 60, 50]
 mov2 = [0, 10, 50, -45]
 mov3 = [0, 10, 0, -80]
-movements = [mov1, mov2, mov3, mov1]
+movements = [mov1, mov2, mov3, mov1]    # Array for waypoints
 
 np.set_printoptions(precision=3)
 np.set_printoptions(suppress=True)
 
-#Initialize file
+# Initialize file
 filename = 'robot_movement_data.pkl'
-# # Setup robot
-# robot = Robot()  # Creates robot object
 
-# # Zero robot position
-# traj_time = 1  # Defines the trajectory time
-# robot.write_time(traj_time)  # Write trajectory time
-# robot.write_motor_state(True)  # Write position mode
-# robot.write_joints([0, 0, 0, 0])  # Write joints to zero position
+# Setup robot
+robot = Robot()  # Creates robot object
 
-# traj_time = 5  # Defines the trajectory time
-# robot.write_time(traj_time)  # Write trajectory time
+# Zero robot position
+traj_time = 1  # Defines the trajectory time
+robot.write_time(traj_time)  # Write trajectory time
+robot.write_motor_state(True)  # Write position mode
+robot.write_joints([0, 0, 0, 0])  # Write joints to zero position
 
-# timestamps = []
-# joint_angles = []
-# ee_positions = []
+traj_time = 5                   # Defines the trajectory time
+robot.write_time(traj_time)     # Write trajectory time
 
-# begin_time = time.time()
-# for movement in movements:
-#     robot.write_joints(movement)
-#     start_time = time.time()
-#     while time.time() - start_time < traj_time: # Continue till the trajectory time has been reached
-#         timestamps.append(time.time()-begin_time)
-#         joint_angles.append(robot.get_joints_readings()[0])
-#         ee_positions.append(robot.get_ee_pos(robot.get_joints_readings()[0]))
+timestamps = []                 # Create arrays for metrics to be logged
+joint_angles = []
+ee_positions = []
+
+begin_time = time.time()                # Create a timer to use for timestamps
+
+for movement in movements:              # Traverse through each waypoint, logging appropriate data
+    robot.write_joints(movement)
+    start_time = time.time()
+    while time.time() - start_time < traj_time: # Continue till the trajectory time has been reached
+        timestamps.append(time.time()-begin_time)
+        joint_angles.append(robot.get_joints_readings()[0])
+        ee_positions.append(robot.get_ee_pos(robot.get_joints_readings()[0]))
     
-    
-# # Sample data to save
-# data_to_save = {
-#     'joint_angles': joint_angles,
-#     'ee_positions': ee_positions,
-#     'timestamps': timestamps
-# }
+data_to_save = {                        # Setup data to save
+    'joint_angles': joint_angles,
+    'ee_positions': ee_positions,
+    'timestamps': timestamps
+}
 
-# PickleFiler.save_to_pickle(data_to_save, filename)
-robot = Robot()
+PickleFiler.save_to_pickle(data_to_save, filename)          # Save data
 
-loaded_data = PickleFiler.load_from_pickle(filename)
+################################################################
+#PLOT DATA SECTION
+################################################################
+
+loaded_data = PickleFiler.load_from_pickle(filename)        # Load data...
 print("Data loaded from: ", filename)
-joint_angles_saved = np.array(loaded_data['joint_angles'])
+joint_angles_saved = np.array(loaded_data['joint_angles'])  # ...into numpy arrays
 ee_positions_saved = np.array(loaded_data['ee_positions'])
 timestamps_saved = np.array(loaded_data['timestamps'])
-# print("Joint angles:", joint_angles_saved)
-# print("End-effector positions:", ee_positions_saved)
-# print("Timestamps:", timestamps_saved)
 
+# Plots:
 
 #
 # (a) Plotting the joint positions

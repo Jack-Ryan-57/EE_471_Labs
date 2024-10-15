@@ -49,9 +49,11 @@ class Robot(OM_X_arm):
         goals = [round(goal * DX_XM430_W350.TICKS_PER_DEG + DX_XM430_W350.TICK_POS_OFFSET) % DX_XM430_W350.TICKS_PER_ROT for goal in goals]
         self.bulk_read_write(DX_XM430_W350.POS_LEN, DX_XM430_W350.GOAL_POSITION, goals)
 
-    """
-    
-    """
+    '''
+    Input: a 1 × 4 array corresponding to a row of the DH parameter table for a given joint.
+    Return: a 4 × 4 numpy array representing the homogeneous transformation matrix Ai .
+    Description: Calculates the intermediate transformation Ai for a DH parameter table row
+    '''
     def get_dh_row_mat(self, in_arr: np.array) -> np.array:
         return np.array(
                [[np.cos(in_arr[0]),  -np.sin(in_arr[0])*np.cos(in_arr[3]),   np.sin(in_arr[0])*np.sin(in_arr[3]),    in_arr[2]*np.cos(in_arr[0])],
@@ -64,6 +66,7 @@ class Robot(OM_X_arm):
     '''
     Input: a 1 × 4 numpy array specifying the joint angles.
     Return: a 4 × 4 × 4 numpy array of A matrices for specified joint angles (A1; A2; A3; A4)
+    Description: Utilizing get_dh_row_mat(), this method uses the DH table and joint angles to calculate the intermediate transformation Ai for all rows at specific joint angles.
     '''
     def get_int_mat(self, motor_angles: np.array) -> np.array:
         return np.array(
@@ -78,6 +81,7 @@ class Robot(OM_X_arm):
     '''
     Input: a 1 × 4 numpy array specifying the joint angles.
     Return: a 4 × 4 × 4 numpy array of T matrices (transforms from joint i to the base) for specified joint angles
+    Description: Using the A matrices from get_int_mat(), this method calculates the accumulative transformations for all joints at specific joint angles
     '''
     def get_acc_mat(self, joint_angles: np.array) -> np.array:
         a = self.get_int_mat(joint_angles)
@@ -90,6 +94,7 @@ class Robot(OM_X_arm):
     '''
     Input: a 1 × 4 numpy array specifying the joint angles.
     Return: a 4 × 4 numpy array representing the end-effector to base transformation
+    Description: Using the A matrices from get_int_mat(), this method calculates the forward kinematics of the robot as a 4 × 4 homogeneous transformation matrix representing the position and orientation of the end-effector frame with respect to the base frame.
     '''
     def get_fk(self, joint_angles: np.array) -> np.array:
         return self.get_acc_mat(joint_angles)[3]
@@ -121,6 +126,8 @@ class Robot(OM_X_arm):
     
     '''
     Inputs: None
+    Return: 4 × 4 numpy array representing the end-effector to base transformation for current joint angles
+–   Description: Retrieves the last read joint angles using get_joints_readings() and calculates the end-effector to base transformation using get_fk()
     '''
     def get_current_fk(self) -> np.array:
         joint_angles = self.get_joints_readings()[0]
@@ -130,6 +137,7 @@ class Robot(OM_X_arm):
     '''
     Input: a 1 × 4 numpy array specifying the joint angles
     Output: a 1 × 5 numpy array containing the end-effector position (x, y , z in mm) and orientation (pitch and yaw in degrees)
+    Description: Calculates the end-effector position and orientation for given joint angles. It returns the x, y , z coordinates in millimeters and the pitch & yaw in degrees with respect to the base frame.
     '''
     def get_ee_pos(self, joint_angles: np.array) -> np.array:
         yaw = joint_angles[0]

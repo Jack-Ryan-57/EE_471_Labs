@@ -27,6 +27,7 @@ while time.time() - start_time < traj_time: # Continue till the trajectory time 
 # Setup trajectory to be measured
 robot.write_joints([15, -45, -60, 90])  # Write joints to zero position
 
+# Continuously print metrics
 start_time = time.time()
 while time.time() - start_time < traj_time: # Continue till the trajectory time has been reached
     print(robot.get_current_fk())  # Fetch current end effector transformation matrix
@@ -36,6 +37,7 @@ while time.time() - start_time < traj_time: # Continue till the trajectory time 
 # Setup trajectory to be measured
 robot.write_joints([-90, 0, 0, 0])  # Write joints to zero position
 
+# Continuously print metrics
 start_time = time.time()
 while time.time() - start_time < traj_time: # Continue till the trajectory time has been reached
     print(robot.get_current_fk())  # Fetch current end effector transformation matrix
