@@ -101,14 +101,15 @@ class Robot(OM_X_arm):
     
     '''
     Input: a 1 x 4 array with desired x, y, z (mm), and alpha (deg) for end-effector
-    Return: a 4 x 4 array of motor angles for given end-effector pose
+    Return: a 1 x 4 array of motor angles for given end-effector pose
     Description: Performs inverse kinematics to calculate motor angles needed to place end-effector in given pose
     '''
     def get_ik(self, pose: np.array) -> np.array:
         joint_mins = [-180, -115, -90, -100]
         joint_maxs = [180, 90, 88, 15]
         pose = [pose[0]/1000, pose[1]/1000, pose[2]/1000, np.deg2rad(pose[3])]
-        if (not self.check_cartesian_bounds(pose)):
+        # Check if desired pose is in workspace
+        if (not self.in_workspace(pose)):
             raise ValueError
         r = np.sqrt(pose[0]*pose[0] + pose[1]*pose[1])
         r_w = r - self.L4*np.cos(pose[3])
@@ -144,7 +145,7 @@ class Robot(OM_X_arm):
         else:
             raise ValueError
         
-    def check_cartesian_bounds(self, pose: np.array):
+    def in_workspace(self, pose: np.array):
         max_dist = self.L2 + self.L3 + self.L4
         z_min = -self.L1
         return (np.sqrt(pose[0]*pose[0] + pose[1]*pose[1] + pose[2]*pose[2]) < max_dist and pose[2] > z_min)
@@ -159,7 +160,7 @@ class Robot(OM_X_arm):
     
 
     '''
-    Input: a 1 × 4 numpy array specifying the joint angles
+    Input: a 1 × 4 numpy array specifying the joint angles (deg)
     Output: a 1 × 5 numpy array containing the end-effector position (x, y , z in mm) and orientation (pitch and yaw in degrees)
     Description: Calculates the end-effector position and orientation for given joint angles. It returns the x, y , z coordinates in millimeters and the pitch & yaw in degrees with respect to the base frame.
     '''
