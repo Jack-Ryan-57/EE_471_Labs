@@ -105,13 +105,15 @@ class Robot(OM_X_arm):
     Description: Performs inverse kinematics to calculate motor angles needed to place end-effector in given pose
     '''
     def get_ik(self, pose: np.array) -> np.array:
-        joint_mins = [-180, -115, -90, -100]
+        joint_mins = [-180, -115, -90, -100]                                        # Limitations of the joints
         joint_maxs = [180, 90, 88, 15]
-        pose = [pose[0]/1000, pose[1]/1000, pose[2]/1000, np.deg2rad(pose[3])]
+        pose = [pose[0]/1000, pose[1]/1000, pose[2]/1000, np.deg2rad(pose[3])]      # Unit conversions
+        
         # Check if desired pose is in workspace
         if (not self.in_workspace(pose)):
             raise ValueError
-        r = np.sqrt(pose[0]*pose[0] + pose[1]*pose[1])
+        
+        r = np.sqrt(pose[0]*pose[0] + pose[1]*pose[1])                              # Begin calculating IK
         r_w = r - self.L4*np.cos(pose[3])
         z_w  = pose[2] - self.L1 - self.L4*np.sin(pose[3])
         d_w = np.sqrt(r_w*r_w + z_w*z_w)
@@ -127,21 +129,24 @@ class Robot(OM_X_arm):
         delta = np.atan2(self.l_22, self.l_21)
         theta_2 = np.pi/2 - delta - gamma1 - mu
         theta_3 = np.pi/2 + delta - beta1
-        elbow_up = [np.atan2(pose[1], pose[0]), theta_2, theta_3, -pose[3] - theta_2 - theta_3]
+        elbow_up = [np.atan2(pose[1], pose[0]), theta_2, theta_3, -pose[3] - theta_2 - theta_3]     # Solution 1
         theta_2 = np.pi/2 - delta - gamma2 - mu
         theta_3 = np.pi/2 + delta - beta2
-        elbow_down = [np.atan2(pose[1], pose[0]), theta_2, theta_3, -pose[3] - theta_2 - theta_3]
+        elbow_down = [np.atan2(pose[1], pose[0]), theta_2, theta_3, -pose[3] - theta_2 - theta_3]   # Solution 2
 
+        # Verify Solution 1 (ideal elbow up)
         within_bounds = all(joint_mins[i] <= elbow_up[i] <= joint_maxs[i] for i in range(len(joint_mins)))
          
         if within_bounds:
             return np.rad2deg(elbow_up)
         
+        # If Solution 1 is not valid, verify Solution 2
         within_bounds = all(joint_mins[i] <= elbow_down[i] <= joint_maxs[i] for i in range(len(joint_mins)))
 
         if within_bounds:
             return np.rad2deg(elbow_down)
         
+        # If neither solution is valid, ValueError
         else:
             raise ValueError
         
